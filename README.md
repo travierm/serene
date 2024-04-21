@@ -1,10 +1,8 @@
 
-<p align="left">
-    
-  <img src="pngs/serenedb.png" width="80" alt="Serene DB Logo">
-
+<p align="left">    
+  <img src="pngs/image.png" width="250" alt="Serene DB Logo">
 </p>
-<span style="display: inline-block; font-size: 24px; font-weight: bold;">SereneDB</span>
+
 
 ### Features
 - JSON based table creation/update schemas
