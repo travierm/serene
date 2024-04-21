@@ -7,15 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Database struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-var databases = []Database{
-	{ID: 1, Name: "serene_main"},
-}
-
 func RegisterDatabaseRoutes(e *echo.Echo) {
 	e.GET("/databases", GetDatabases)
 	e.GET("/users/:id", GetDatabaseById)

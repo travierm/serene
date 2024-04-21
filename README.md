@@ -1,7 +1,4 @@
-
-<p align="left">    
-  <img src="pngs/image.png" width="250" alt="Serene DB Logo">
-</p>
+# Serene DB
 
 ### Features
 - JSON based table creation/update schemas
@@ -14,5 +11,3 @@
     - String Manipulation
     - Date Manipulation
 - JSON Rest API for sending queries to the database
-
-
