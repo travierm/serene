@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="pngs/serenedb.png" width="50" alt="Serene DB Logo" style="vertical-align: middle;">
+  <img src="pngs/serenedb.png" width="100" alt="Serene DB Logo" style="vertical-align: middle;">
   <span style="display: inline-block; vertical-align: middle; margin-left: 20px; font-size: 24px; font-weight: bold;">SereneDB</span>
 </p>
 
