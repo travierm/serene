@@ -18,23 +18,26 @@ type TestRecord struct {
 	Amount float64
 }
 
-func TestHeap(t *testing.T) {
+func TestHeapCrud(t *testing.T) {
 	heap := NewHeap[TestRecord]("products", "storage/test")
 
 	err := heap.Insert(&Record[TestRecord]{ID: 1, Data: TestRecord{Name: "Product 1", Amount: 100.0}})
 	err = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 150.0}})
-	err = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 150.0}})
+	err = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 200.0}})
+	err = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 200.0}})
 	heap.Flush()
 
-	newHeap := NewHeap[TestRecord]("products", "storage/test")
-	newHeap.Fill()
-	record, err := newHeap.FindByID(2)
+	insertedRecord, err := heap.FindByID(1)
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, "Product 1", insertedRecord.Data.Name)
 
-	assert.Equal(t, "Product 2", record.Data.Name)
-	assert.Equal(t, 3, len(heap.wal.entries))
+	updatedRecord, err := heap.FindByID(2)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "Updated Product", updatedRecord.Data.Name)
 
 	ClearTestFolder()
 }
@@ -52,6 +55,38 @@ func TestFindByIdLargeDataset(t *testing.T) {
 		record, _ := heap.FindByID(randomNum)
 		assert.Equal(t, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
 	}
+
+	ClearTestFolder()
+}
+
+func TestCanRecoverFromWAL(t *testing.T) {
+	heap := NewHeap[TestRecord]("products", "storage/test")
+	err := heap.Insert(&Record[TestRecord]{ID: 1, Data: TestRecord{Name: "Product 1", Amount: 100.0}})
+	err = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 200.0}})
+	err = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 220.0}})
+	err = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 120.0}})
+	err = heap.Delete(3)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	heap.wal.Flush()
+
+	recoveredHeap := NewHeap[TestRecord]("products2", "storage/test")
+	recoveredHeap.Recover(heap.wal.path)
+
+	firstRecord, _ := recoveredHeap.FindByID(1)
+	updatedRecord, _ := recoveredHeap.FindByID(2)
+	deletedRecord, _ := recoveredHeap.FindByID(3)
+
+	assert.Equal(t, "Product 1", firstRecord.Data.Name)
+	assert.Equal(t, 100.0, firstRecord.Data.Amount)
+
+	assert.Equal(t, "Updated Product", updatedRecord.Data.Name)
+	assert.Equal(t, 120.0, updatedRecord.Data.Amount)
+
+	assert.Nil(t, deletedRecord)
 
 	ClearTestFolder()
 }

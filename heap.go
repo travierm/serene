@@ -38,7 +38,7 @@ func NewHeap[T any](tableName string, dataDir string) *Heap[T] {
 		pageSize:  pageSize,
 		pages:     make([]*Page, 0),
 		dataDir:   dataDir,
-		wal:       NewWAL(fmt.Sprintf("storage/%s.wal", tableName)),
+		wal:       NewWAL(fmt.Sprintf("%s/%s.wal", dataDir, tableName)),
 	}
 }
 
@@ -102,11 +102,23 @@ func (h *Heap[T]) Update(record *Record[T]) error {
 					Data:      dataBytes,
 				})
 
-				// Update the record data size
-				binary.BigEndian.PutUint32(page.data[offset+8:offset+12], uint32(len(dataBytes)))
+				// Check if the updated data size is different from the original size
+				if len(dataBytes) != int(dataSize) {
+					// Remove the original record
+					copy(page.data[offset:], page.data[offset+12+int(dataSize):])
+					page.data = page.data[:len(page.data)-12-int(dataSize)]
 
-				// Update the record data
-				copy(page.data[offset+12:offset+12+int(dataSize)], dataBytes)
+					// Insert the updated record as a new record
+					updatedRecordBytes := make([]byte, 12+len(dataBytes))
+					binary.BigEndian.PutUint64(updatedRecordBytes[0:8], record.ID)
+					binary.BigEndian.PutUint32(updatedRecordBytes[8:12], uint32(len(dataBytes)))
+					copy(updatedRecordBytes[12:], dataBytes)
+
+					page.data = append(page.data, updatedRecordBytes...)
+				} else {
+					// Update the record data in-place
+					copy(page.data[offset+12:offset+12+int(dataSize)], dataBytes)
+				}
 
 				return nil
 			}
@@ -263,6 +275,8 @@ func (h *Heap[T]) Flush() error {
 		}
 	}
 
+	h.wal.Flush()
+
 	return nil
 }
 
@@ -378,9 +392,14 @@ func (h *Heap[T]) Recover(walFilePath string) error {
 			} else {
 				err = h.Update(record)
 			}
+
+			if err != nil {
+				return err
+			}
 		case "DELETE":
 			err = h.Delete(entry.RecordID)
 		}
+
 		if err != nil {
 			return err
 		}
