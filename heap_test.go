@@ -80,6 +80,7 @@ func TestCanRecoverFromWAL(t *testing.T) {
 	updatedRecord, _ := recoveredHeap.FindByID(2)
 	deletedRecord, _ := recoveredHeap.FindByID(3)
 
+	assert.Equal(t, 0, len(recoveredHeap.wal.entries))
 	assert.Equal(t, "Product 1", firstRecord.Data.Name)
 	assert.Equal(t, 100.0, firstRecord.Data.Amount)
 

@@ -42,7 +42,7 @@ func NewHeap[T any](tableName string, dataDir string) *Heap[T] {
 	}
 }
 
-func (h *Heap[T]) Insert(record *Record[T]) error {
+func (h *Heap[T]) Insert(record *Record[T], disableWAL ...bool) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -55,11 +55,14 @@ func (h *Heap[T]) Insert(record *Record[T]) error {
 	if err != nil {
 		return err
 	}
-	h.wal.Log(&WALEntry{
-		Operation: "INSERT",
-		RecordID:  record.ID,
-		Data:      dataBytes,
-	})
+
+	if len(disableWAL) == 0 || !disableWAL[0] {
+		h.wal.Log(&WALEntry{
+			Operation: "INSERT",
+			RecordID:  record.ID,
+			Data:      dataBytes,
+		})
+	}
 
 	recordBytes = append(recordBytes, make([]byte, 4)...)
 	binary.BigEndian.PutUint32(recordBytes[8:12], uint32(len(dataBytes)))
@@ -79,7 +82,7 @@ func (h *Heap[T]) Insert(record *Record[T]) error {
 	return nil
 }
 
-func (h *Heap[T]) Update(record *Record[T]) error {
+func (h *Heap[T]) Update(record *Record[T], disableWAL ...bool) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -96,11 +99,13 @@ func (h *Heap[T]) Update(record *Record[T]) error {
 					return err
 				}
 
-				h.wal.Log(&WALEntry{
-					Operation: "UPDATE",
-					RecordID:  record.ID,
-					Data:      dataBytes,
-				})
+				if len(disableWAL) == 0 || !disableWAL[0] {
+					h.wal.Log(&WALEntry{
+						Operation: "UPDATE",
+						RecordID:  record.ID,
+						Data:      dataBytes,
+					})
+				}
 
 				// Check if the updated data size is different from the original size
 				if len(dataBytes) != int(dataSize) {
@@ -130,7 +135,7 @@ func (h *Heap[T]) Update(record *Record[T]) error {
 	return fmt.Errorf("record with ID %d not found", record.ID)
 }
 
-func (h *Heap[T]) Delete(id uint64) error {
+func (h *Heap[T]) Delete(id uint64, disableWAL ...bool) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -141,14 +146,16 @@ func (h *Heap[T]) Delete(id uint64) error {
 			dataSize := binary.BigEndian.Uint32(page.data[offset+8 : offset+12])
 
 			if recordID == id {
+				if len(disableWAL) == 0 || !disableWAL[0] {
+					h.wal.Log(&WALEntry{
+						Operation: "DELETE",
+						RecordID:  id,
+					})
+				}
+
 				// Remove the record by shifting the remaining data to the left
 				copy(page.data[offset:], page.data[offset+12+int(dataSize):])
 				page.data = page.data[:len(page.data)-12-int(dataSize)]
-
-				h.wal.Log(&WALEntry{
-					Operation: "DELETE",
-					RecordID:  id,
-				})
 
 				return nil
 			}
@@ -388,16 +395,16 @@ func (h *Heap[T]) Recover(walFilePath string) error {
 				Data: data,
 			}
 			if entry.Operation == "INSERT" {
-				err = h.Insert(record)
+				err = h.Insert(record, true)
 			} else {
-				err = h.Update(record)
+				err = h.Update(record, true)
 			}
 
 			if err != nil {
 				return err
 			}
 		case "DELETE":
-			err = h.Delete(entry.RecordID)
+			err = h.Delete(entry.RecordID, true)
 		}
 
 		if err != nil {
