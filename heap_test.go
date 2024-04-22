@@ -38,6 +38,21 @@ func TestHeap(t *testing.T) {
 	ClearTestFolder()
 }
 
+func TestFindByIdLargeDataset(t *testing.T) {
+	heap := NewHeap[TestRecord]("products", "storage/test")
+	for i := 0; i < 1000; i++ {
+		_ = heap.Insert(&Record[TestRecord]{ID: uint64(i), Data: TestRecord{Name: fmt.Sprintf("Product %d", i), Amount: 100.0}})
+	}
+
+	for i := 0; i < 4; i++ {
+		randomNum := rand.Uint64() % 1001
+		record, _ := heap.FindByID(randomNum)
+		assert.Equal(t, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
+	}
+
+	ClearTestFolder()
+}
+
 func BenchmarkFindById(b *testing.B) {
 	// create 100 records
 	heap := NewHeap[TestRecord]("products", "storage/test")
