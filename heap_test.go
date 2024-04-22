@@ -34,6 +34,7 @@ func TestHeap(t *testing.T) {
 	}
 
 	assert.Equal(t, "Product 2", record.Data.Name)
+	assert.Equal(t, 3, len(heap.wal.entries))
 
 	ClearTestFolder()
 }
@@ -43,6 +44,8 @@ func TestFindByIdLargeDataset(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		_ = heap.Insert(&Record[TestRecord]{ID: uint64(i), Data: TestRecord{Name: fmt.Sprintf("Product %d", i), Amount: 100.0}})
 	}
+
+	assert.Equal(t, 1000, len(heap.wal.entries))
 
 	for i := 0; i < 4; i++ {
 		randomNum := rand.Uint64() % 1001

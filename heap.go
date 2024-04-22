@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -24,6 +25,7 @@ type Heap[T any] struct {
 	pages     []*Page
 	mutex     sync.Mutex
 	dataDir   string
+	wal       *WAL
 }
 
 type Page struct {
@@ -36,6 +38,7 @@ func NewHeap[T any](tableName string, dataDir string) *Heap[T] {
 		pageSize:  pageSize,
 		pages:     make([]*Page, 0),
 		dataDir:   dataDir,
+		wal:       NewWAL(fmt.Sprintf("storage/%s.wal", tableName)),
 	}
 }
 
@@ -52,6 +55,12 @@ func (h *Heap[T]) Insert(record *Record[T]) error {
 	if err != nil {
 		return err
 	}
+	h.wal.Log(&WALEntry{
+		Operation: "INSERT",
+		RecordID:  record.ID,
+		Data:      dataBytes,
+	})
+
 	recordBytes = append(recordBytes, make([]byte, 4)...)
 	binary.BigEndian.PutUint32(recordBytes[8:12], uint32(len(dataBytes)))
 	recordBytes = append(recordBytes, dataBytes...)
@@ -87,6 +96,12 @@ func (h *Heap[T]) Update(record *Record[T]) error {
 					return err
 				}
 
+				h.wal.Log(&WALEntry{
+					Operation: "UPDATE",
+					RecordID:  record.ID,
+					Data:      dataBytes,
+				})
+
 				// Update the record data size
 				binary.BigEndian.PutUint32(page.data[offset+8:offset+12], uint32(len(dataBytes)))
 
@@ -117,6 +132,11 @@ func (h *Heap[T]) Delete(id uint64) error {
 				// Remove the record by shifting the remaining data to the left
 				copy(page.data[offset:], page.data[offset+12+int(dataSize):])
 				page.data = page.data[:len(page.data)-12-int(dataSize)]
+
+				h.wal.Log(&WALEntry{
+					Operation: "DELETE",
+					RecordID:  id,
+				})
 
 				return nil
 			}
@@ -322,4 +342,49 @@ func readPageFromFile(filename string) (*Page, error) {
 
 	page := &Page{data: pageData}
 	return page, nil
+}
+
+func (h *Heap[T]) Recover(walFilePath string) error {
+	file, err := os.Open(walFilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	for {
+		var entry WALEntry
+		err := decoder.Decode(&entry)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		switch entry.Operation {
+		case "INSERT", "UPDATE":
+			var data T
+			err := json.Unmarshal(entry.Data, &data)
+			if err != nil {
+				return err
+			}
+			record := &Record[T]{
+				ID:   entry.RecordID,
+				Data: data,
+			}
+			if entry.Operation == "INSERT" {
+				err = h.Insert(record)
+			} else {
+				err = h.Update(record)
+			}
+		case "DELETE":
+			err = h.Delete(entry.RecordID)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
