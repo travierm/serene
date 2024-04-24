@@ -3,5 +3,8 @@ First Steps:
     ☐ Create Table Schema Validator
     ☐ Save Table to database
 
-Core Concepts:
-    ☐ Uses a WAL
+Next Steps:
+    ☐ Indexes => Should point records within bin files
+        ☐ what index to use is handled by the query optimizer
+    - Partition Indexes for relationships
+        ☐ Store FKeys together. Product => Images, Tags

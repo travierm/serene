@@ -26,6 +26,7 @@ type Heap[T any] struct {
 	mutex     sync.Mutex
 	dataDir   string
 	wal       *WAL
+	index     *BTreeIndex[T]
 }
 
 type Page struct {
@@ -39,6 +40,7 @@ func NewHeap[T any](tableName string, dataDir string) *Heap[T] {
 		pages:     make([]*Page, 0),
 		dataDir:   dataDir,
 		wal:       NewWAL(fmt.Sprintf("%s/%s.wal", dataDir, tableName)),
+		index:     NewBTreeIndex[T](3),
 	}
 }
 

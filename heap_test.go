@@ -56,6 +56,23 @@ func TestFindByIdLargeDataset(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
 	}
 
+	//ClearTestFolder()
+}
+
+func TestFindByIdWithinIndexesLargeDataset(t *testing.T) {
+	heap := NewHeap[TestRecord]("products", "storage/test")
+	for i := 0; i < 1000; i++ {
+		_ = heap.InsertWithIndex(&Record[TestRecord]{ID: uint64(i), Data: TestRecord{Name: fmt.Sprintf("Product %d", i), Amount: 100.0}})
+	}
+
+	assert.Equal(t, 1000, len(heap.wal.entries))
+
+	for i := 0; i < 4; i++ {
+		randomNum := rand.Uint64() % 1001
+		record, _ := heap.FindByIdWithinIndex(randomNum)
+		assert.Equal(t, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
+	}
+
 	ClearTestFolder()
 }
 
@@ -95,7 +112,7 @@ func TestCanRecoverFromWAL(t *testing.T) {
 func BenchmarkFindById(b *testing.B) {
 	// create 100 records
 	heap := NewHeap[TestRecord]("products", "storage/test")
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		_ = heap.Insert(&Record[TestRecord]{ID: uint64(i), Data: TestRecord{Name: fmt.Sprintf("Product %d", i), Amount: 100.0}})
 	}
 
@@ -103,6 +120,39 @@ func BenchmarkFindById(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		randomNum := rand.Uint64() % 101
 		_, _ = heap.FindByID(randomNum)
+
+		//assert.Equal(b, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
+	}
+}
+
+func BenchmarkInsertWithIndex(b *testing.B) {
+	heap := NewHeap[TestRecord]("products", "storage/test")
+
+	for n := 0; n < b.N; n++ {
+		_ = heap.InsertWithIndex(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
+	}
+}
+
+func BenchmarkInsertWithoutIndex(b *testing.B) {
+	heap := NewHeap[TestRecord]("products", "storage/test")
+
+	for n := 0; n < b.N; n++ {
+		_ = heap.Insert(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
+	}
+}
+
+func BenchmarkFindByIdWithIndexes(b *testing.B) {
+
+	// create 100 records
+	heap := NewHeap[TestRecord]("products", "storage/test")
+	for i := 0; i < 500000; i++ {
+		_ = heap.InsertWithIndex(&Record[TestRecord]{ID: uint64(i), Data: TestRecord{Name: fmt.Sprintf("Product %d", i), Amount: 100.0}})
+	}
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		randomNum := rand.Uint64() % 101
+		_, _ = heap.FindByIdWithinIndex(randomNum)
 
 		//assert.Equal(b, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
 	}
@@ -122,7 +172,7 @@ func BenchmarkFindAll(b *testing.B) {
 		//assert.Equal(b, fmt.Sprintf("Product %d", randomNum), record.Data.Name)
 	}
 
-	//ClearTestFolder()
+	ClearTestFolder()
 }
 
 func BenchmarkFlush(b *testing.B) {
