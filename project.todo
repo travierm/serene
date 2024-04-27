@@ -8,3 +8,6 @@ Next Steps:
         ☐ what index to use is handled by the query optimizer
     - Partition Indexes for relationships
         ☐ Store FKeys together. Product => Images, Tags
+
+High Level Needs:
+    ☐ Durability against data corruption
