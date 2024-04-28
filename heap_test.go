@@ -22,9 +22,13 @@ func TestHeapCrud(t *testing.T) {
 	heap := NewHeap[TestRecord]("products", "storage/test")
 
 	err := heap.Insert(&Record[TestRecord]{ID: 1, Data: TestRecord{Name: "Product 1", Amount: 100.0}})
-	err = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 150.0}})
-	err = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 200.0}})
-	err = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 200.0}})
+	_ = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 150.0}})
+	_ = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 200.0}})
+	_ = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 200.0}})
+	if err != nil {
+		t.Error(err)
+	}
+
 	heap.Flush()
 
 	insertedRecord, err := heap.FindByID(1)
@@ -79,10 +83,10 @@ func TestFindByIdWithinIndexesLargeDataset(t *testing.T) {
 func TestCanRecoverFromWAL(t *testing.T) {
 	heap := NewHeap[TestRecord]("products", "storage/test")
 	err := heap.Insert(&Record[TestRecord]{ID: 1, Data: TestRecord{Name: "Product 1", Amount: 100.0}})
-	err = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 200.0}})
-	err = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 220.0}})
-	err = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 120.0}})
-	err = heap.Delete(3)
+	_ = heap.Insert(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Product 2", Amount: 200.0}})
+	_ = heap.Insert(&Record[TestRecord]{ID: 3, Data: TestRecord{Name: "Product 3", Amount: 220.0}})
+	_ = heap.Update(&Record[TestRecord]{ID: 2, Data: TestRecord{Name: "Updated Product", Amount: 120.0}})
+	_ = heap.Delete(3)
 
 	if err != nil {
 		t.Error(err)
