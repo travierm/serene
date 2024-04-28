@@ -6,6 +6,25 @@ import (
 	"path/filepath"
 )
 
+func RemoveKey[T any](slice []T, key T, equals func(T, T) bool) []T {
+	for i, v := range slice {
+		if equals(v, key) {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
+func Filter[T any](s []T, fn func(T) bool) []T {
+	var result []T
+	for _, v := range s {
+		if fn(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
 func ClearTestFolder() {
 	folder := "storage/test"
 

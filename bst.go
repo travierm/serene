@@ -109,3 +109,72 @@ func (t *BinarySearchTree) Insert(key uint64) {
 
 	t.rootNode.Insert(key)
 }
+
+// todo: add mutex lock when balancing to help with root replacement while an insert is happening
+func (t *BinarySearchTree) Balance() {
+	if t.rootNode == nil {
+		return
+	}
+
+	records := t.rootNode.GetOrderedList()
+
+	mid := len(records) / 2  //find mid element
+	left := records[:mid]    //store left slice elements in left variable
+	right := records[mid+1:] // right always stores the middle number and we need to skip over it
+
+	insertList := make([]uint64, 0, len(records))
+	insertList = append(insertList, left...) // Add left elements
+	insertList = append(insertList, right...)
+
+	newRoot := BSTNode{
+		Key: records[mid],
+	}
+
+	for _, node := range insertList {
+		newRoot.Insert(node)
+	}
+
+	t.rootNode = &newRoot
+}
+
+func (n *BSTNode) GetOrderedList() []uint64 {
+	records := n.GetValues("left", []uint64{})
+	records = append(records, n.Key)
+	records = append(records, n.GetValues("right", []uint64{})...)
+
+	return records
+}
+
+func (n *BSTNode) GetValues(direction string, previousRecords []uint64) []uint64 {
+	if direction == "left" {
+		if n.Left != nil {
+			leftValues := n.Left.GetValues("left", previousRecords)
+			rightValues := n.Left.GetValues("right", previousRecords)
+
+			previousRecords := append(previousRecords, leftValues...)
+			previousRecords = append(previousRecords, n.Left.Key)
+			previousRecords = append(previousRecords, rightValues...)
+
+			return previousRecords
+		}
+
+		return previousRecords
+	}
+
+	if direction == "right" {
+		if n.Right != nil {
+			leftValues := n.Right.GetValues("left", previousRecords)
+			rightValues := n.Right.GetValues("right", previousRecords)
+
+			previousRecords := append(previousRecords, leftValues...)
+			previousRecords = append(previousRecords, n.Right.Key)
+			previousRecords = append(previousRecords, rightValues...)
+
+			return previousRecords
+		}
+
+		return previousRecords
+	}
+
+	return previousRecords
+}

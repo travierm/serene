@@ -7,6 +7,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCanBalanceBST(t *testing.T) {
+	// Arrange
+	keys := []uint64{10, 5, 15, 30, 20, 25, 35}
+
+	// Act
+	tree := &BinarySearchTree{}
+	for _, key := range keys {
+		tree.Insert(key)
+	}
+
+	tree.Exists(25)
+	initialHops := tree.LastHopsCheck
+
+	fmt.Printf("initial Tree \n\n")
+	tree.rootNode.Print("", true)
+
+	tree.Balance()
+	tree.Exists(25)
+	balancedHops := tree.LastHopsCheck
+
+	fmt.Printf("balanced Tree \n")
+	tree.rootNode.Print("", true)
+
+	// Assert
+	assert.Equal(t, 4, initialHops, "initial hops")
+	assert.Equal(t, 1, balancedHops, "balanced hops")
+}
+
 func TestBSTCanInsert(t *testing.T) {
 	// Arrange
 	keys := []uint64{10, 5, 15, 30, 20, 25, 35}
@@ -18,8 +46,6 @@ func TestBSTCanInsert(t *testing.T) {
 	}
 
 	// Assert
-	tree.rootNode.Print("", true)
-
 	assert.Equal(t, true, tree.Exists(20), fmt.Sprintf("%d exists", 20))
 
 	for _, key := range keys {
@@ -42,4 +68,5 @@ func TestBSTCanInsert(t *testing.T) {
 	assert.Equal(t, false, tree.Exists(9))
 	assert.Equal(t, false, tree.Exists(21))
 	assert.Equal(t, false, tree.Exists(36))
+
 }
