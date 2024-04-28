@@ -125,20 +125,22 @@ func BenchmarkFindById(b *testing.B) {
 	}
 }
 
-func BenchmarkInsertWithIndex(b *testing.B) {
-	heap := NewHeap[TestRecord]("products", "storage/test")
+func BenchmarkInsert(b *testing.B) {
+	b.Run("insert with index", func(b *testing.B) {
+		heap := NewHeap[TestRecord]("products", "storage/test")
 
-	for n := 0; n < b.N; n++ {
-		_ = heap.InsertWithIndex(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
-	}
-}
+		for n := 0; n < b.N; n++ {
+			_ = heap.InsertWithIndex(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
+		}
+	})
 
-func BenchmarkInsertWithoutIndex(b *testing.B) {
-	heap := NewHeap[TestRecord]("products", "storage/test")
+	b.Run("insert without index", func(b *testing.B) {
+		heap := NewHeap[TestRecord]("products", "storage/test")
 
-	for n := 0; n < b.N; n++ {
-		_ = heap.Insert(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
-	}
+		for n := 0; n < b.N; n++ {
+			_ = heap.Insert(&Record[TestRecord]{ID: uint64(1), Data: TestRecord{Name: fmt.Sprintf("Product %d", 1), Amount: 100.0}})
+		}
+	})
 }
 
 func BenchmarkFindByIdWithIndexes(b *testing.B) {
