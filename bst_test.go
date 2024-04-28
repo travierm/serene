@@ -20,19 +20,36 @@ func TestCanBalanceBST(t *testing.T) {
 	tree.Exists(25)
 	initialHops := tree.LastHopsCheck
 
-	fmt.Printf("initial Tree \n\n")
+	fmt.Printf("\n initial Tree \n")
 	tree.rootNode.Print("", true)
 
 	tree.Balance()
 	tree.Exists(25)
 	balancedHops := tree.LastHopsCheck
 
-	fmt.Printf("balanced Tree \n")
+	fmt.Printf("\n balanced Tree \n")
 	tree.rootNode.Print("", true)
 
 	// Assert
 	assert.Equal(t, 4, initialHops, "initial hops")
-	assert.Equal(t, 1, balancedHops, "balanced hops")
+	assert.Equal(t, 2, balancedHops, "balanced hops")
+}
+
+func TestBSTCanDelete(t *testing.T) {
+	keys := []uint64{10, 5, 15, 30, 20, 25, 35}
+
+	// Act
+	tree := &BinarySearchTree{}
+	for _, key := range keys {
+		tree.Insert(key)
+	}
+
+	tree.Balance()
+
+	assert.Equal(t, true, tree.Exists(25))
+	tree.Delete(25)
+
+	assert.Equal(t, false, tree.Exists(25))
 }
 
 func TestBSTCanInsert(t *testing.T) {

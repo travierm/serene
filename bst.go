@@ -110,31 +110,42 @@ func (t *BinarySearchTree) Insert(key uint64) {
 	t.rootNode.Insert(key)
 }
 
+func (t *BinarySearchTree) Delete(key uint64) {
+	list := t.rootNode.GetOrderedList()
+	filteredList := RemoveKey(list, key, func(x uint64, y uint64) bool {
+		return x == y
+	})
+
+	t.rootNode = balanceNodeRecursive(filteredList, 0, len(filteredList)-1)
+}
+
+func (n *BSTNode) CreateBalancedCopy() *BSTNode {
+	keys := n.GetOrderedList()
+
+	return balanceNodeRecursive(keys, 0, len(keys)-1)
+}
+
+func balanceNodeRecursive(keys []uint64, left, right int) *BSTNode {
+	if left > right {
+		return nil
+	}
+
+	mid := (left + right) / 2
+	node := &BSTNode{Key: keys[mid]}
+
+	node.Left = balanceNodeRecursive(keys, left, mid-1)
+	node.Right = balanceNodeRecursive(keys, mid+1, right)
+
+	return node
+}
+
 // todo: add mutex lock when balancing to help with root replacement while an insert is happening
 func (t *BinarySearchTree) Balance() {
 	if t.rootNode == nil {
 		return
 	}
 
-	records := t.rootNode.GetOrderedList()
-
-	mid := len(records) / 2  //find mid element
-	left := records[:mid]    //store left slice elements in left variable
-	right := records[mid+1:] // right always stores the middle number and we need to skip over it
-
-	insertList := make([]uint64, 0, len(records))
-	insertList = append(insertList, left...) // Add left elements
-	insertList = append(insertList, right...)
-
-	newRoot := BSTNode{
-		Key: records[mid],
-	}
-
-	for _, node := range insertList {
-		newRoot.Insert(node)
-	}
-
-	t.rootNode = &newRoot
+	t.rootNode = t.rootNode.CreateBalancedCopy()
 }
 
 func (n *BSTNode) GetOrderedList() []uint64 {
@@ -146,32 +157,25 @@ func (n *BSTNode) GetOrderedList() []uint64 {
 }
 
 func (n *BSTNode) GetValues(direction string, previousRecords []uint64) []uint64 {
-	if direction == "left" {
-		if n.Left != nil {
-			leftValues := n.Left.GetValues("left", previousRecords)
-			rightValues := n.Left.GetValues("right", previousRecords)
 
-			previousRecords := append(previousRecords, leftValues...)
-			previousRecords = append(previousRecords, n.Left.Key)
-			previousRecords = append(previousRecords, rightValues...)
+	if direction == "left" && n.Left != nil {
+		leftValues := n.Left.GetValues("left", previousRecords)
+		rightValues := n.Left.GetValues("right", previousRecords)
 
-			return previousRecords
-		}
+		previousRecords := append(previousRecords, leftValues...)
+		previousRecords = append(previousRecords, n.Left.Key)
+		previousRecords = append(previousRecords, rightValues...)
 
 		return previousRecords
 	}
 
-	if direction == "right" {
-		if n.Right != nil {
-			leftValues := n.Right.GetValues("left", previousRecords)
-			rightValues := n.Right.GetValues("right", previousRecords)
+	if direction == "right" && n.Right != nil {
+		leftValues := n.Right.GetValues("left", previousRecords)
+		rightValues := n.Right.GetValues("right", previousRecords)
 
-			previousRecords := append(previousRecords, leftValues...)
-			previousRecords = append(previousRecords, n.Right.Key)
-			previousRecords = append(previousRecords, rightValues...)
-
-			return previousRecords
-		}
+		previousRecords := append(previousRecords, leftValues...)
+		previousRecords = append(previousRecords, n.Right.Key)
+		previousRecords = append(previousRecords, rightValues...)
 
 		return previousRecords
 	}
