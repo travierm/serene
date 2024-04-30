@@ -11,3 +11,4 @@ Next Steps:
 
 High Level Needs:
     ☐ Durability against data corruption
+    ☐ Shared Buffer to keep indexes/data in memory
