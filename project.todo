@@ -4,6 +4,7 @@ First Steps:
     ☐ Save Table to database
 
 Next Steps:
+    ☐ Not all keys get stored as leafs, Not splitting correctly something todo with mid in spliteNode
     ☐ Indexes => Should point records within bin files
         ☐ what index to use is handled by the query optimizer
     - Partition Indexes for relationships
@@ -12,3 +13,4 @@ Next Steps:
 High Level Needs:
     ☐ Durability against data corruption
     ☐ Shared Buffer to keep indexes/data in memory
+   

@@ -3,20 +3,70 @@ package main
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCanInsertNodes(t *testing.T) {
-	//keys := []int{10, 5, 15, 30, 20, 25, 35}
-	keys := []int{10, 5, 15, 30, 12}
+// func TestCanInsertNodes(t *testing.T) {
+// 	//keys := []int{10, 5, 15, 30, 20, 25, 35}
+// 	//keys := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
-	tree := &BPlusTree{
-		minChildren: 2,
-		maxChildren: 3,
-	}
+// 	keys := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+// 	tree := NewBPlusTree(3)
+
+// 	for _, key := range keys {
+// 		tree.Insert(key, fmt.Sprintf("Node #%d", key))
+// 		tree.Print()
+// 	}
+// }
+
+func TestIsShapedCorrectlyAfter2(t *testing.T) {
+	tree := NewBPlusTree(3)
+	keys := []int{1, 2}
 
 	for _, key := range keys {
 		tree.Insert(key, fmt.Sprintf("Node #%d", key))
 	}
+
+	assert.True(t, len(tree.root.keys) == 2, "root has one key")
+	assert.True(t, tree.root.keys[0] == 1, "root key is 1")
+	assert.True(t, tree.root.keys[1] == 2, "root key is 1")
+	assert.True(t, len(tree.root.children) == 0, "root has no children")
+
+	tree.Print()
+}
+
+func TestIsShapedCorrectlyAfter3(t *testing.T) {
+	tree := NewBPlusTree(3)
+	keys := []int{1, 2, 3}
+
+	for _, key := range keys {
+		tree.Insert(key, fmt.Sprintf("Node #%d", key))
+	}
+
+	assert.True(t, len(tree.root.keys) == 1, "root has one key")
+	assert.True(t, tree.root.keys[0] == 2, "root key is 2")
+	assert.Equal(t, []int{1}, tree.root.children[0].keys, "1 is the left most child")
+	assert.Equal(t, []int{2, 3}, tree.root.children[1].keys, "2,3 is the right most children")
+
+	tree.Print()
+}
+
+func TestIsShapedCorrectlyAfter4(t *testing.T) {
+	tree := NewBPlusTree(3)
+	keys := []int{1, 2, 3, 4}
+
+	for _, key := range keys {
+		tree.Insert(key, fmt.Sprintf("Node #%d", key))
+	}
+
+	assert.True(t, len(tree.root.keys) == 2, "root has two keys")
+	assert.True(t, len(tree.root.children) == 3, "root has three children")
+	assert.Equal(t, []int{2, 3}, tree.root.keys)
+	assert.Equal(t, []int{1}, tree.root.children[0].keys)
+	assert.Equal(t, []int{2}, tree.root.children[1].keys)
+	assert.Equal(t, []int{3, 4}, tree.root.children[2].keys)
 
 	tree.Print()
 }
@@ -34,7 +84,7 @@ func TestCanFindLeaf(t *testing.T) {
 	}
 
 	root.next = n4 // example of linking nodes sequentially
-	tree := &BPlusTree{root: root, minChildren: 2, maxChildren: 3}
+	tree := NewBPlusTree(3)
 
 	tree.Print()
 }
