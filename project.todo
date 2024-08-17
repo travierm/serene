@@ -3,8 +3,10 @@ First Steps:
     ☐ Create Table Schema Validator
     ☐ Save Table to database
 
+github.com/timtadh/fs2/bptree
+
+
 Next Steps:
-    ☐ Not all keys get stored as leafs, Not splitting correctly something todo with mid in spliteNode
     ☐ Indexes => Should point records within bin files
         ☐ what index to use is handled by the query optimizer
     - Partition Indexes for relationships

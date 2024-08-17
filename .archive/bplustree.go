@@ -57,7 +57,11 @@ func (tree *BPlusTree) insertIntoParent(node *BPlusTreeNode, key int, newNode *B
 
 	// If the parent is now too large, split the parent
 	if len(parent.keys) > int(tree.maxKeys) {
-		tree.splitNode(parent)
+		if parent == tree.root {
+			tree.SplitRoot()
+		} else {
+			tree.splitNode(parent)
+		}
 	}
 }
 
@@ -82,6 +86,7 @@ func (tree *BPlusTree) findParent(current, child *BPlusTreeNode) *BPlusTreeNode 
 	return nil
 }
 func (tree *BPlusTree) Insert(key int, value interface{}) {
+
 	if tree.root == nil {
 		tree.root = &BPlusTreeNode{
 			keys:   []int{key}, // Directly insert the first key

@@ -25,6 +25,22 @@ func Filter[T any](s []T, fn func(T) bool) []T {
 	return result
 }
 
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return err == nil
+}
+
+func BytesToUint64(b []byte) uint64 {
+	var result uint64
+	for i := 0; i < len(b) && i < 8; i++ {
+		result = result<<8 | uint64(b[i])
+	}
+	return result
+}
+
 func ClearTestFolder() {
 	folder := "storage/test"
 
