@@ -79,9 +79,6 @@ func TestIsShapedCorrectlyAfter5(t *testing.T) {
 		tree.Insert(key, fmt.Sprintf("Node #%d", key))
 	}
 
-	tree.Print()
-	return
-
 	// root
 	assert.Equal(t, []int{3}, tree.root.keys)
 
@@ -91,12 +88,40 @@ func TestIsShapedCorrectlyAfter5(t *testing.T) {
 
 	// 3rd layer
 	// left
-	assert.Equal(t, []int{1}, tree.root.children[0].children[0])
-	assert.Equal(t, []int{2}, tree.root.children[0].children[1])
+	assert.Equal(t, []int{1}, tree.root.children[0].children[0].keys)
+	assert.Equal(t, []int{2}, tree.root.children[0].children[1].keys)
 
 	// right
-	assert.Equal(t, []int{3}, tree.root.children[1].children[0])
-	assert.Equal(t, []int{4, 5}, tree.root.children[1].children[1])
+	assert.Equal(t, []int{3}, tree.root.children[1].children[0].keys)
+	assert.Equal(t, []int{4, 5}, tree.root.children[1].children[1].keys)
+
+	tree.Print()
+}
+
+func TestIsShapedCorrectlyAfter6(t *testing.T) {
+	tree := NewBPlusTree(3)
+	keys := []int{1, 2, 3, 4, 5, 6}
+
+	for _, key := range keys {
+		tree.Insert(key, fmt.Sprintf("Node #%d", key))
+	}
+
+	// root
+	assert.Equal(t, []int{3}, tree.root.keys)
+
+	// 2nd layer
+	assert.Equal(t, []int{2}, tree.root.children[0].keys)    // right
+	assert.Equal(t, []int{4, 5}, tree.root.children[1].keys) // left
+
+	// 3rd layer
+	// left
+	assert.Equal(t, []int{1}, tree.root.children[0].children[0].keys)
+	assert.Equal(t, []int{2}, tree.root.children[0].children[1].keys)
+
+	// right
+	assert.Equal(t, []int{3}, tree.root.children[1].children[0].keys)
+	assert.Equal(t, []int{4}, tree.root.children[1].children[1].keys)
+	assert.Equal(t, []int{5, 6}, tree.root.children[1].children[2].keys)
 
 	tree.Print()
 }

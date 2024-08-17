@@ -100,13 +100,13 @@ func (tree *BPlusTree) Insert(key int, value interface{}) {
 	index := sort.SearchInts(leaf.keys, key)
 	leaf.keys = append(leaf.keys[:index], append([]int{key}, leaf.keys[index:]...)...)
 
+	if len(leaf.keys) > int(tree.maxKeys) {
+		tree.splitNode(leaf)
+	}
+
 	if len(tree.root.keys) > int(tree.maxKeys) {
 		tree.SplitRoot()
 		return
-	}
-
-	if len(leaf.keys) > int(tree.maxKeys) {
-		tree.splitNode(leaf)
 	}
 }
 
@@ -149,7 +149,7 @@ func (tree *BPlusTree) SplitRoot() {
 	// split the node in two
 	mid := len(root.keys) / 2
 	leftKeys := root.keys[:mid]
-	rightKeys := root.keys[mid:]
+	rightKeys := root.keys[mid+1:]
 
 	leftChildren := []*BPlusTreeNode{}
 	rightChildren := []*BPlusTreeNode{}
