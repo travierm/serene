@@ -103,11 +103,6 @@ func (tree *BPlusTree) Insert(key int, value interface{}) {
 	if len(leaf.keys) > int(tree.maxKeys) {
 		tree.splitNode(leaf)
 	}
-
-	if len(tree.root.keys) > int(tree.maxKeys) {
-		tree.SplitRoot()
-		return
-	}
 }
 
 func (tree *BPlusTree) findLeaf(key int) *BPlusTreeNode {
@@ -190,30 +185,30 @@ func (tree *BPlusTree) splitNode(node *BPlusTreeNode) {
 	}
 
 	midIndex := len(node.keys) / 2
-	promoteKey := node.keys[midIndex]
-
-	if len(node.children) > int(tree.maxKeys) {
-		midIndex = midIndex + 1
-	}
-
-	// Create new node with the right half of the keys
-	newNode := &BPlusTreeNode{
-		keys:   append([]int{}, node.keys[midIndex:]...), // this is fucked
-		isLeaf: node.isLeaf,
-		next:   node.next,
-	}
-	node.keys = node.keys[:midIndex]
+	var promoteKey int
+	var newNode *BPlusTreeNode
 
 	if node.isLeaf {
-		node.next = newNode // Maintain linked list of leaves
+		promoteKey = node.keys[midIndex]
+		newNode = &BPlusTreeNode{
+			keys:   append([]int{}, node.keys[midIndex:]...),
+			isLeaf: true,
+			next:   node.next,
+		}
+		node.keys = node.keys[:midIndex]
+		node.next = newNode
 	} else {
-		// If not a leaf, also split children
-		newNode.children = node.children[midIndex+1:]
+		promoteKey = node.keys[midIndex]
+		newNode = &BPlusTreeNode{
+			keys:     append([]int{}, node.keys[midIndex+1:]...),
+			children: append([]*BPlusTreeNode{}, node.children[midIndex+1:]...),
+			isLeaf:   false,
+		}
+		node.keys = node.keys[:midIndex]
 		node.children = node.children[:midIndex+1]
 	}
 
 	if node == tree.root {
-		// Create new root when the root is split
 		newRoot := &BPlusTreeNode{
 			keys:     []int{promoteKey},
 			children: []*BPlusTreeNode{node, newNode},
