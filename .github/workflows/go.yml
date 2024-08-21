@@ -2,30 +2,32 @@ name: Go Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
-
   test:
     name: Test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.22.2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22.2
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./...
+      - name: Create test directories
+        run: mkdir -p storage/test
 
-    - name: Benchmark
-      run: make benchmark
+      - name: Test
+        run: go test -v ./...
+
+      - name: Benchmark
+        run: make benchmark

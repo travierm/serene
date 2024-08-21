@@ -9,8 +9,8 @@ import (
 
 type BPlusTree struct {
 	root      *BPlusTreeNode
-	maxDegree uint // max num of children
-	maxKeys   uint
+	maxDegree uint32 // max num of children
+	maxKeys   uint32
 }
 
 type BPlusTreeNode struct {
@@ -20,7 +20,7 @@ type BPlusTreeNode struct {
 	next     *BPlusTreeNode // next node sequentially
 }
 
-func NewBPlusTree(maxDegree uint) *BPlusTree {
+func NewBPlusTree(maxDegree uint32) *BPlusTree {
 	return &BPlusTree{
 		maxDegree: maxDegree,
 		maxKeys:   maxDegree - 1,
