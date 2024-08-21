@@ -15,7 +15,10 @@ func TestCanSaveAndLoadBinaryFile(t *testing.T) {
 		tree.Insert(key, fmt.Sprintf("Node #%d", key))
 	}
 
-	tree.SaveToBinaryFile("storage/test/bplustree.bin")
+	err := tree.SaveToBinaryFile("storage/test/bplustree.bin")
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
 
 	loadedTree, err := LoadFromBinaryFile("storage/test/bplustree.bin")
 	if err != nil {
